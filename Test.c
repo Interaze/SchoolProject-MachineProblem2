@@ -6,15 +6,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct {
+    int from;
+    int to;
+}link;
+
 typedef struct nodes{
     int value;
-    char color;
     struct nodes* next;
 } node;
 
 typedef struct totem{
     node* right;
     node* left;
+    char color;
 } pole;
 
 typedef struct linked{
@@ -27,9 +32,11 @@ node * addNode(int);
 node * insertNode(node* linkedlist, node* nodePlacer);
 void printList(list);
 void printThru(node *);
-//void printConns(node *);
+void printConns(list);
+int findconn(node *, list);
+link * createLink(int u, int v);
 pole* createTotem();
-void findMax(list);
+link** findMax(list);
 void freeRows(node *);
 void freeList(list);
 
@@ -54,16 +61,145 @@ int main(int argc, char** argv) {
     printf("\nThe inputted Graph is:\n");
     printList(G);
 
-    //printConns(G);
+    printConns(G);
 
     freeList(G);
     printf("\n--End of Program--\n");
 }
 
-void printConns(node * changelater){
+void printConns(list G){
+    int size = G.size;
+    pole** core = G.head;
+    int a = 0;
+    int b = 0;
+    link ** conns = findMax(G);
+    link * first = NULL;
+    link * second = NULL;
 
+    for(int i = 0; i < size && conns[i] != NULL; i++){
+        if((conns[i])->to != (conns[i])->from){
+            if(!first){
+                first = conns[i];
+            }
+            else if(!second){
+                second = conns[i];
+                printf("\n%d -> %d", first->to, second->from);
+                core[(first->to)-1]->color = 'B';
+                core[(second->from)-1]->color = 'B';
+                printf("\nCORES %d and %d turned to black",(first->to)-1,(second->from)-1);
+            }
+            else{
+                first = second;
+                second = conns[i];
 
-    printf("\n---Finished Listing---");
+                printf("\n%d -> %d", first->to, second->from);
+                core[(first->to)-1]->color = 'B';
+                core[(second->from)-1]->color = 'B';
+                printf("\nCORES %d and %d turned to black",(first->to)-1,(second->from)-1);
+            }
+        }
+    }
+    if(second){
+        printf("\n%d -> %d", second->to, conns[0]->from);
+        core[(second->to)-1]->color = 'B';
+        core[(conns[0]->from)-1]->color = 'B';
+        printf("\nCORES %d and %d turned to black",(second->to)-1,(conns[0]->from)-1);
+    }
+
+    int sources[size];
+    int sinks[size];
+
+    for (int i = 0; i < size; i++) {
+        if(core[i]->left == NULL){
+            if(core[i]->color == 'W'){
+                sources[a] = i+1;
+                printf("test\n");
+                a++;
+            }
+        }
+        else if(core[i]->right == NULL || core[i]->color == 'B'){
+            if(core[i]->color == 'W'){
+                sinks[b] = i+1;
+                printf("%s\n", "test");
+                b++;
+            }
+        }
+    }
+
+    printf("\nArray for Sources:\n");
+    for (int z = 0; z < a; z++){
+        printf("%d ", sources[z]);
+    }
+
+    printf("\nArray for Sinks:\n");
+    for (int z = 0; z < b; z++){
+        printf("%d ", sinks[z]);
+    }
+
+    free(conns);
+}
+
+int findconn(node * head, list linkedList){
+    pole** core = linkedList.head;
+
+    if(!head){
+        return 0;
+    }
+    while(head){
+        if((core[(head->value)-1])->color == 'W'){
+            (core[(head->value)-1]->color) = 'B';
+            return head->value;
+        }
+        head = head->next;
+    }
+
+    return 0;
+}
+
+link** findMax(list linkedList){
+    int c;
+    int size = linkedList.size;
+    pole** head = linkedList.head;
+
+    link** linkarr = malloc(sizeof(link*)*size);
+
+    for(int d = 0; d < size; d++){
+        linkarr[d] = NULL;
+    }
+
+    int surge = 0;
+    for(int p = 1; p <= size; p++){
+        if(head[p-1]->color == 'W'){
+            c = findconn((head[p-1])->right, linkedList);
+            if(c){
+                linkarr[surge] = createLink(p,c);
+                surge++;
+            }
+            else{
+                linkarr[surge] = createLink(p,p);
+                surge++;
+            }
+        }
+    }
+
+    int path = 0;
+    while(path<surge){
+        printf("\nto %d from %d at %d", linkarr[path]->to,linkarr[path]->from, path);
+        path++;
+    }
+
+    return linkarr;
+
+}
+
+link * createLink(int u, int v){
+    link * temp = malloc(sizeof(link));
+    if(!temp){
+        return NULL;
+    }
+    temp->from = u;
+    temp->to = v;
+    return temp;
 }
 
 void freeList(list linkedList){
@@ -163,7 +299,7 @@ list buildAdj(FILE *fp){
             for(; oldmax <= max; oldmax++){
                 if(i != 0 || oldmax == 1){
                     linkedlist[oldmax-1] = createTotem();
-                    printf("\n%d oldmax", oldmax-1);
+                    //printf("\n%d oldmax", oldmax-1);
                 }
                 i++;
             }
@@ -175,7 +311,7 @@ list buildAdj(FILE *fp){
             for(; oldmax <= max; oldmax++){
                 if(j != 0 || oldmax == 1){
                 linkedlist[oldmax-1] = createTotem();
-                printf("\n%d oldmax", oldmax-1);
+                //printf("\n%d oldmax", oldmax-1);
                 }
                 j++;
             }
@@ -198,13 +334,13 @@ node * insertNode(node* linkedlist, node* nodePlacer){
     int val = nodePlacer->value;
     node * head = linkedlist;
     if(linkedlist == NULL){//returns the nodePlacer as the new head of list
-        printf("\nfirst\n %d", nodePlacer->value);
+        //printf("\nfirst\n %d", nodePlacer->value);
         //head = nodePlacer;
         return nodePlacer;
     }
     while(linkedlist->next != NULL){//persues throught the list until it reaches the last node, then adds the node after if it's unique
         if (linkedlist->value == val) {
-            printf("\nsame\n %d", nodePlacer->value);
+            //printf("\nsame\n %d", nodePlacer->value);
             free(nodePlacer);
             return head;
         }
@@ -214,11 +350,11 @@ node * insertNode(node* linkedlist, node* nodePlacer){
         linkedlist->next = nodePlacer;
     }
     else{
-        printf("\nfreed\n %d", nodePlacer->value);
+        //printf("\nfreed\n %d", nodePlacer->value);
         free(nodePlacer);
         return head;
     }
-    printf("\nend\n %d", nodePlacer->value);
+    //printf("\nend\n %d", nodePlacer->value);
     return head;
 }
 
@@ -231,7 +367,6 @@ node * addNode(int v){
     }
     tempNode->value = v;
     tempNode->next = NULL;
-    tempNode->color = 'W';
     return tempNode;
 }
 
@@ -242,6 +377,7 @@ pole * createTotem(){
     if(a){
         a->right = NULL;
         a->left = NULL;
+        a->color = 'W';
         return a;
     }
     else{
