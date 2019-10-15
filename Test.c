@@ -12,9 +12,14 @@ typedef struct nodes{
     struct nodes* next;
 } node;
 
+typedef struct totem{
+    node* right;
+    node* left;
+} pole;
+
 typedef struct linked{
     int size;
-    node** head;
+    pole** head;
 } list;
 
 list buildAdj(FILE *);
@@ -22,6 +27,9 @@ node * addNode(int);
 node * insertNode(node* linkedlist, node* nodePlacer);
 void printList(list);
 void printThru(node *);
+//void printConns(node *);
+pole* createTotem();
+void findMax(list);
 void freeRows(node *);
 void freeList(list);
 
@@ -46,19 +54,26 @@ int main(int argc, char** argv) {
     printf("\nThe inputted Graph is:\n");
     printList(G);
 
+    //printConns(G);
 
     freeList(G);
     printf("\n--End of Program--\n");
 }
 
-//Path takes a formerly constructed graph built within the list struct in the header, path inherits it's size since the size of our G^2 will always be equivilant. Path proceeds to read each element within the linked list and follow through v->u->w as i->j->k respectively and assign its k value, once a node into the initial I spot
+void printConns(node * changelater){
+
+
+    printf("\n---Finished Listing---");
+}
 
 void freeList(list linkedList){
     int size = linkedList.size;
-    node** head = linkedList.head;
+    pole** head = linkedList.head;
 
     for (int i = 1; i <= size; i++) {//calls for freeing the individual nodes mallocced prior
-        freeRows(head[i-1]);
+        freeRows(head[i-1]->right);
+        freeRows(head[i-1]->left);
+        free(head[i-1]);
     }
     free(head);
 }
@@ -83,13 +98,16 @@ void freeRows(node * head){
 
 void printList(list linkedList){
     int size = linkedList.size;
-    node** head = linkedList.head;
+    pole** head = linkedList.head;
 
     printf("Size of %d", size);
 
     for (int i = 1; i <= size; i++) {//loops through all rows
-        printf("\n%d: ", i);
-        printThru(head[i-1]);//corrects offset
+        printf("\n");
+        printThru(head[i-1]->left);
+        printf(" %d: ", i);
+        printThru(head[i-1]->right);//corrects offset
+
     }
 }
 
@@ -110,12 +128,13 @@ void printThru(node * head){
 //printThru recieves the head pointer for a linked list of node structs, verifying it's not empty, then prints all elements connected by the next node pointer
 
 list buildAdj(FILE *fp){
-    int u, v;
+    int u, v, i, j;
     int oldmax = 1;
     int max = 1;
     node* nodePlacer;//establishes variables that will be in constant use
+    node* flipSide;
 
-    node** linkedlist = malloc(sizeof(node*));// creates our array of pointers that will store our linked lists
+    pole** linkedlist = malloc(sizeof(pole*));// creates our array of pointers that will store our linked lists
     if(!linkedlist){//errorchecks malloc
         printf("\nmalloc failed\n");
         list badList;
@@ -123,12 +142,16 @@ list buildAdj(FILE *fp){
         badList.size = -1;
         return badList;
     }
-    linkedlist[oldmax] = NULL;//erases any garbage data that could accomodate the newly alloced space
+    linkedlist[oldmax] = createTotem();//erases any garbage data that could accomodate the newly alloced space
 
     while(fscanf(fp,"%d %d", &u, &v) != EOF){//loops until the end of the file is acheived
 
+        i = 0, j = 0;
+
         nodePlacer = addNode(v);//calls the addNode method and seeds vertex value
-        if(!nodePlacer){//errorchecks Node
+        flipSide = addNode(u);
+
+        if(!nodePlacer || !flipSide){//errorchecks Node
             printf("\nmalloc of %d %d failed, integrity lost\n", u, v);
             break;
         }
@@ -136,20 +159,30 @@ list buildAdj(FILE *fp){
         if(u >= v && u > max){//determine if either u, v, or max has the largest value, if its u or v then we adjust our array to accomodate the new array
             oldmax = max;
             max = u;
-            linkedlist = realloc(linkedlist, sizeof(node *) * max);
-            for(oldmax--; oldmax < max; oldmax++){
-                linkedlist[oldmax] = NULL;
+            linkedlist = realloc(linkedlist, sizeof(node *) * (max));
+            for(; oldmax <= max; oldmax++){
+                if(i != 0 || oldmax == 1){
+                    linkedlist[oldmax-1] = createTotem();
+                    printf("\n%d oldmax", oldmax-1);
+                }
+                i++;
             }
         }
         else if(v > u && v > max){
             oldmax = max;
             max = v;
-            linkedlist = realloc(linkedlist, sizeof(node *) * max);
-            for(oldmax--; oldmax < max; oldmax++){
-                linkedlist[oldmax] = NULL;
+            linkedlist = realloc(linkedlist, sizeof(node *) * (max));
+            for(; oldmax <= max; oldmax++){
+                if(j != 0 || oldmax == 1){
+                linkedlist[oldmax-1] = createTotem();
+                printf("\n%d oldmax", oldmax-1);
+                }
+                j++;
             }
         }
-        linkedlist[u-1] = insertNode(linkedlist[(u-1)], nodePlacer);//calls for the insertion of the new node in its respective row
+        linkedlist[u-1]->right = insertNode(linkedlist[(u-1)]->right, nodePlacer);//calls for the insertion of the new node in its respective row
+        linkedlist[v-1]->left = insertNode(linkedlist[(v-1)]->left, flipSide);
+        //printf("%d", flipSide->value);
     }
 
     list secretSauce;//develops the list struct and returns it to the user
@@ -165,11 +198,13 @@ node * insertNode(node* linkedlist, node* nodePlacer){
     int val = nodePlacer->value;
     node * head = linkedlist;
     if(linkedlist == NULL){//returns the nodePlacer as the new head of list
-        head = nodePlacer;
-        return head;
+        printf("\nfirst\n %d", nodePlacer->value);
+        //head = nodePlacer;
+        return nodePlacer;
     }
     while(linkedlist->next != NULL){//persues throught the list until it reaches the last node, then adds the node after if it's unique
         if (linkedlist->value == val) {
+            printf("\nsame\n %d", nodePlacer->value);
             free(nodePlacer);
             return head;
         }
@@ -179,8 +214,11 @@ node * insertNode(node* linkedlist, node* nodePlacer){
         linkedlist->next = nodePlacer;
     }
     else{
+        printf("\nfreed\n %d", nodePlacer->value);
         free(nodePlacer);
+        return head;
     }
+    printf("\nend\n %d", nodePlacer->value);
     return head;
 }
 
@@ -198,3 +236,16 @@ node * addNode(int v){
 }
 
 //method addNode, it takes an integer value and creates a node struct that represents a vertex and inputs the value of the vertex into the struct, nullifying the pointer to another struct and setting the value of color to a Char of W for white, while ultimately not used, I reserved it within this method for future implementation.
+
+pole * createTotem(){
+    pole * a= malloc(sizeof(pole));
+    if(a){
+        a->right = NULL;
+        a->left = NULL;
+        return a;
+    }
+    else{
+        printf("FAILED");
+        return NULL;
+    }
+}
