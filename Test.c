@@ -22,7 +22,6 @@ node * addNode(int);
 node * insertNode(node* linkedlist, node* nodePlacer);
 void printList(list);
 void printThru(node *);
-list path(list);
 void freeRows(node *);
 void freeList(list);
 
@@ -54,46 +53,6 @@ int main(int argc, char** argv) {
     freeList(G);
     freeList(G2);//frees all mallocs
     printf("\n--End of Program--\n");
-}
-
-list path(list G){
-    int size = G.size;
-    int i,j,k;
-    node* ihead = NULL,* jhead = NULL;
-    node** head = G.head;
-
-    node** newHead = malloc(size * sizeof(node *));
-
-    for(int q = 0; q < size; q++){//ensures we have no data in our malloc to avoid misreads from the insertNode()
-        newHead[q]=NULL;
-    }
-
-    for(i = 0; i < size; i++){//going down v nodes
-        ihead = head[i];//assign different pointers to avoid overusing head pointer
-        if(ihead == NULL){//moves on to next row if the list is empty
-            //printf("no Connections to node v of val: %d", i);
-            continue;
-        }
-        while(ihead != NULL){//paths through the first connection from v->u
-            j = (ihead->value)-1;
-            jhead = head[j];
-            while (jhead != NULL) {//paths from u->w for its final movement
-                k = jhead->value;
-
-                if((i+1)!=k){
-                newHead[i] = insertNode(newHead[i], addNode(k));//begins seeding the results into a different linked list struct, that will be returned
-                }
-                jhead = jhead->next;
-            }
-            ihead = ihead->next;
-        }
-    }
-
-    list newList;//creation of list that will be returned to the user
-    newList.head = newHead;
-    newList.size = size;
-
-    return newList;
 }
 
 //Path takes a formerly constructed graph built within the list struct in the header, path inherits it's size since the size of our G^2 will always be equivilant. Path proceeds to read each element within the linked list and follow through v->u->w as i->j->k respectively and assign its k value, once a node into the initial I spot
