@@ -29,14 +29,14 @@ typedef struct linked{
 
 list buildAdj(FILE *);
 node * addNode(int);
-node * insertNode(node* linkedlist, node* nodePlacer);
-void printList(list);
-void printThru(node *);
-void printConns(list);
-int findconn(node *, list);
 link * createLink(int u, int v);
 pole* createTotem();
+node * insertNode(node* linkedlist, node* nodePlacer);
+void printConns(list);
 link** findMax(list);
+int findconn(node *, list);
+void printList(list);
+void printThru(node *);
 void freeRows(node *);
 void freeList(list);
 
@@ -58,8 +58,8 @@ int main(int argc, char** argv) {
     fclose(fp);
     //closed early to avoid redundancy
 
-    printf("\nThe inputted Graph is:\n");
-    printList(G);
+    //printf("\nThe inputted Graph is:\n");
+    //printList(G);
 
     printConns(G);
 
@@ -86,36 +86,35 @@ void printConns(list G){
             if(!first){
                 first = conns[i];
             }
-            else if(!second){
+            else if(!second){//goes through list of connections linking the head of the first to the tail of a second
                 second = conns[i];
                 printf("\n%d %d", first->to, second->from);
-                core[(first->to)-1]->color = 'B';
+                core[(first->to)-1]->color = 'B';//avoid overlinking
                 core[(second->from)-1]->color = 'B';
             }
             else{
                 first = second;
-                second = conns[i];
-
+                second = conns[i];//moves up markers
                 printf("\n%d %d", first->to, second->from);
-                core[(first->to)-1]->color = 'B';
+                core[(first->to)-1]->color = 'B';//avoids overlinking
                 core[(second->from)-1]->color = 'B';
             }
         }
     }
-    if(second){
+    if(second){//displays final connection of last left element back to top right element
         printf("\n%d %d", second->to, conns[0]->from);
         core[(second->to)-1]->color = 'B';
         core[(conns[0]->from)-1]->color = 'B';
     }
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {//determines if node is sink or source, once determined, the loop assigns it into either array
         if(core[i]->left == NULL){
-            if(core[i]->color == 'W'){
+            if(core[i]->color == 'W'){//checks to ensure it's not been used to generate a node yet and assigns if true to sink array
                 sources[a] = i+1;
                 a++;
             }
         }
-        else if(core[i]->right == NULL || core[i]->color == 'B'){
+        else if(core[i]->right == NULL){//checks to ensure it's not been used to generate a node yet and assigns if true to source array
             if(core[i]->color == 'W'){
                 sinks[b] = i+1;
                 b++;
@@ -123,7 +122,7 @@ void printConns(list G){
         }
     }
 
-    for(g = 0; g < (a) && g < (b); g++){
+    for(g = 0; g < (a) && g < (b); g++){//displays outlying, unlinked nodes to an appropriate sources by connective each sink to a source where they exist
         printf("\n%d %d", sinks[g], sources[g]);
     }
     for(; g < (a); g++){
@@ -135,6 +134,8 @@ void printConns(list G){
 
     free(conns);
 }
+
+//printConns is a function that initially collects the generated adjacency list matrix of the graph, then loads the array of
 
 int findconn(node * head, list linkedList){
     pole** core = linkedList.head;
@@ -198,6 +199,8 @@ link * createLink(int u, int v){
     temp->to = v;
     return temp;
 }
+
+//createLink takes in two values of a vertice connection, and attaches them into a malloc'd struct, returning the result as a Link
 
 void freeList(list linkedList){
     int size = linkedList.size;
