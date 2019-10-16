@@ -200,7 +200,7 @@ link * createLink(int u, int v){
     return temp;
 }
 
-//createLink takes in two values of a vertice connection, and attaches them into a malloc'd struct, returning the result as a Link
+//createLink takes in two values of a vertice connection, and attaches them into a malloc'd struct, returning the result as a Li
 
 void freeList(list linkedList){
     int size = linkedList.size;
