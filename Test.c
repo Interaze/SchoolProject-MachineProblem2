@@ -72,9 +72,14 @@ void printConns(list G){
     pole** core = G.head;
     int a = 0;
     int b = 0;
+    int g = 0;
+    int sources[size];
+    int sinks[size];
     link ** conns = findMax(G);
     link * first = NULL;
     link * second = NULL;
+
+    printf("\nEdges Required for Insert:\n");
 
     for(int i = 0; i < size && conns[i] != NULL; i++){
         if((conns[i])->to != (conns[i])->from){
@@ -83,57 +88,49 @@ void printConns(list G){
             }
             else if(!second){
                 second = conns[i];
-                printf("\n%d -> %d", first->to, second->from);
+                printf("\n%d %d", first->to, second->from);
                 core[(first->to)-1]->color = 'B';
                 core[(second->from)-1]->color = 'B';
-                printf("\nCORES %d and %d turned to black",(first->to)-1,(second->from)-1);
             }
             else{
                 first = second;
                 second = conns[i];
 
-                printf("\n%d -> %d", first->to, second->from);
+                printf("\n%d %d", first->to, second->from);
                 core[(first->to)-1]->color = 'B';
                 core[(second->from)-1]->color = 'B';
-                printf("\nCORES %d and %d turned to black",(first->to)-1,(second->from)-1);
             }
         }
     }
     if(second){
-        printf("\n%d -> %d", second->to, conns[0]->from);
+        printf("\n%d %d", second->to, conns[0]->from);
         core[(second->to)-1]->color = 'B';
         core[(conns[0]->from)-1]->color = 'B';
-        printf("\nCORES %d and %d turned to black",(second->to)-1,(conns[0]->from)-1);
     }
-
-    int sources[size];
-    int sinks[size];
 
     for (int i = 0; i < size; i++) {
         if(core[i]->left == NULL){
             if(core[i]->color == 'W'){
                 sources[a] = i+1;
-                printf("test\n");
                 a++;
             }
         }
         else if(core[i]->right == NULL || core[i]->color == 'B'){
             if(core[i]->color == 'W'){
                 sinks[b] = i+1;
-                printf("%s\n", "test");
                 b++;
             }
         }
     }
 
-    printf("\nArray for Sources:\n");
-    for (int z = 0; z < a; z++){
-        printf("%d ", sources[z]);
+    for(g = 0; g < (a - 1) && g < (b - 1); g++){
+        printf("\n%d %d", sinks[g], sources[g]);
     }
-
-    printf("\nArray for Sinks:\n");
-    for (int z = 0; z < b; z++){
-        printf("%d ", sinks[z]);
+    for(; g < (a - 1); g++){
+        printf("\n%d %d", (conns[0]->to), sources[g]);
+    }
+    for(;g < b; g++){
+        printf("\n%d %d", sinks[g], (conns[0]->to));
     }
 
     free(conns);
@@ -184,7 +181,7 @@ link** findMax(list linkedList){
 
     int path = 0;
     while(path<surge){
-        printf("\nto %d from %d at %d", linkarr[path]->to,linkarr[path]->from, path);
+        //printf("\nto %d from %d at %d", linkarr[path]->to,linkarr[path]->from, path);
         path++;
     }
 
