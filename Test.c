@@ -1,6 +1,6 @@
-//Write few lines of comments at the beginning of your program to explain the idea of your algorithm. Indicate in your explanation whether or not this program can be implemented to run in linear time and why.
+//Write few lines of comments at the beginning of your program to explain the idea of your algorithm.
 
-//Within My algorithm, I construct an initial array through malloc, at the length of the max size of the vertex. Yet this operation (through reallocs), allows me to read through the file one time, which starts me with O(n) time. Along with my creation of nodes that are O(1) time and my insert into the linked list, which is at worst O(2n) complexity or O(n), my initial creation of the graph rests at O(n), due to my avoidence of nesting loops or recursion. My pathing algorithm takes a similar tactic as prior, reading through the array of linked lists, it reads each node, following its value two times. This is acheived by its use of an anchor pointer, and resetting marker pointers. Due to being able to reference a vertex value and examine its row, then examining each row I'm able to path through it within O(n) time, with my free functions working in a similar manor to my prints, my cumulaive complexity should be O(n) time totaling to a linear complexity due to the reading of the adjacency list matrix.
+//Within My algorithm, I initialize the linked list to hold front and back values, with its creation, I develop a maximal edge list and proceed to link the edges together. Once completed, I attach any non-listed vertices to their appropriate place depending on wether they're a source or sink, printing out their respective result
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -172,11 +172,11 @@ link** findMax(list linkedList){
     for(int p = 1; p <= size; p++){
         if(head[p-1]->color == 'W'){
             c = findconn((head[p-1])->right, linkedList);
-            if(c){
+            if(c){//if there was a value discovered, creates with the c value
                 linkarr[surge] = createLink(p,c);
                 surge++;
             }
-            else{
+            else{//if not sets equal to itself
                 linkarr[surge] = createLink(p,p);
                 surge++;
             }
@@ -185,6 +185,8 @@ link** findMax(list linkedList){
 
     return linkarr;
 }
+
+//findMax takes a linkedList, scanning through and collecting the maximal edges for each vertext, if it doesn't exist, has the Link be the same to and from value
 
 link * createLink(int u, int v){
     link * temp = malloc(sizeof(link));
@@ -210,7 +212,7 @@ void freeList(list linkedList){
     free(head);
 }
 
-//freelist is the overarching method for freeing the linked lists, as the structs are called through main, we don't have to free those, yet we need to deconstruct our struct list, and path down the linked lists, stopping by each row to individually free it, which is performed through a method call to freeRows. Afterwhich, we end by freeing the final malloc, used to hold the entire linkedlist together, referred to as the node double pointer
+//freelist is the overarching method for freeing the linked lists, as the structs are called through main, we don't have to free those, yet we need to deconstruct our struct list, and path down the linked lists, stopping by each row to individually free it, which is performed through a method call to freeRows. Afterwhich, we end by freeing the final malloc, used to hold the entire linkedlist together, referred to as the node double pointer also frees the elements in the core
 
 void freeRows(node * head){
     node* newHead;
@@ -243,7 +245,7 @@ void printList(list linkedList){
     }
 }
 
-//printList taks the list struct, made in the header, and prints the size of the storage array, then calles the printThru method to proceed printing each node respectively
+//printList taks the list struct, made in the header, and prints the size of the storage array, then calles the printThru method to proceed printing each node respectively forwards and backwards
 
 void printThru(node * head){
     if(head == NULL){
@@ -295,7 +297,6 @@ list buildAdj(FILE *fp){
             for(; oldmax <= max; oldmax++){
                 if(i != 0 || oldmax == 1){
                     linkedlist[oldmax-1] = createTotem();
-                    //printf("\n%d oldmax", oldmax-1);
                 }
                 i++;
             }
@@ -307,14 +308,12 @@ list buildAdj(FILE *fp){
             for(; oldmax <= max; oldmax++){
                 if(j != 0 || oldmax == 1){
                 linkedlist[oldmax-1] = createTotem();
-                //printf("\n%d oldmax", oldmax-1);
                 }
                 j++;
             }
         }
         linkedlist[u-1]->right = insertNode(linkedlist[(u-1)]->right, nodePlacer);//calls for the insertion of the new node in its respective row
         linkedlist[v-1]->left = insertNode(linkedlist[(v-1)]->left, flipSide);
-        //printf("%d", flipSide->value);
     }
 
     list secretSauce;//develops the list struct and returns it to the user
@@ -336,7 +335,6 @@ node * insertNode(node* linkedlist, node* nodePlacer){
     }
     while(linkedlist->next != NULL){//persues throught the list until it reaches the last node, then adds the node after if it's unique
         if (linkedlist->value == val) {
-            //printf("\nsame\n %d", nodePlacer->value);
             free(nodePlacer);
             return head;
         }
@@ -346,11 +344,9 @@ node * insertNode(node* linkedlist, node* nodePlacer){
         linkedlist->next = nodePlacer;
     }
     else{
-        //printf("\nfreed\n %d", nodePlacer->value);
         free(nodePlacer);
         return head;
     }
-    //printf("\nend\n %d", nodePlacer->value);
     return head;
 }
 
@@ -381,3 +377,5 @@ pole * createTotem(){
         return NULL;
     }
 }
+
+//createTotem mallocs out a pole struct and assigns default values, returning the malloced pointer
