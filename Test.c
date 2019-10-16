@@ -56,10 +56,6 @@ int main(int argc, char** argv) {
 
     list G = buildAdj(fp);
     fclose(fp);
-    //closed early to avoid redundancy
-
-    //printf("\nThe inputted Graph is:\n");
-    //printList(G);
 
     printConns(G);
 
@@ -79,7 +75,7 @@ void printConns(list G){
     link * first = NULL;
     link * second = NULL;
 
-    printf("\nEdges Required for Insert:\n");
+    printf("\nEdges Required for Insert:");
 
     for(int i = 0; i < size && conns[i] != NULL; i++){
         if((conns[i])->to != (conns[i])->from){
@@ -132,10 +128,15 @@ void printConns(list G){
         printf("\n%d %d", sinks[g], (conns[0]->to));
     }
 
+    link** persue = conns;
+    while(*persue){
+        free(*persue);
+        persue = persue + 1;
+    }
     free(conns);
 }
 
-//printConns is a function that initially collects the generated adjacency list matrix of the graph, then loads the array of
+//printConns is a function that initially collects the generated adjacency list matrix of the graph, then loads the array of edgesprinting the edges determined to be needed and then freeing the conns array
 
 int findconn(node * head, list linkedList){
     pole** core = linkedList.head;
@@ -145,7 +146,7 @@ int findconn(node * head, list linkedList){
     }
     while(head){
         if((core[(head->value)-1])->color == 'W'){
-            (core[(head->value)-1]->color) = 'B';
+            (core[(head->value)-1]->color) = 'B';//prevents overrunning
             return head->value;
         }
         head = head->next;
@@ -153,6 +154,8 @@ int findconn(node * head, list linkedList){
 
     return 0;
 }
+
+//find conn takes a pointer to a linked list and will find a node that hasn't been linked, returning the vertex if it's a suitable connection, returning 0 if it fails
 
 link** findMax(list linkedList){
     int c;
@@ -180,14 +183,7 @@ link** findMax(list linkedList){
         }
     }
 
-    int path = 0;
-    while(path<surge){
-        //printf("\nto %d from %d at %d", linkarr[path]->to,linkarr[path]->from, path);
-        path++;
-    }
-
     return linkarr;
-
 }
 
 link * createLink(int u, int v){
