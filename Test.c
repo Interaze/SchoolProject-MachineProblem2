@@ -57,6 +57,8 @@ int main(int argc, char** argv) {
     list G = buildAdj(fp);
     fclose(fp);
 
+    printList(G);
+
     printConns(G);
 
     freeList(G);
